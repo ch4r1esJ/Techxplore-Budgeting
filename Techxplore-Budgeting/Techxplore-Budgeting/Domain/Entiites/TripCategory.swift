@@ -16,7 +16,7 @@ struct Expense: Identifiable {
     var note: String
 }
 
-struct TripCategory: Identifiable {
+struct TripCategory: Identifiable,Equatable, Hashable {
     let id = UUID()
     let name: String
     let icon: String

@@ -11,8 +11,12 @@ struct AddExpenseSheet: View {
     @ObservedObject var viewModel: TripDetailViewModel
     @Environment(\.dismiss) var dismiss
 
-    @State private var selectedCategory: TripCategory?
+    @State private var selectedIndex: Int = 0
     @State private var amount: String = ""
+
+    var selectedCategory: TripCategory {
+        viewModel.categories[selectedIndex]
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -27,26 +31,17 @@ struct AddExpenseSheet: View {
                     .font(.caption)
                     .foregroundStyle(.gray)
 
-                Menu {
-                    ForEach(viewModel.categories) { category in
-                        Button {
-                            selectedCategory = category
-                        } label: {
-                            Text("\(category.icon) \(category.name)")
-                        }
+                Picker("", selection: $selectedIndex) {
+                    ForEach(viewModel.categories.indices, id: \.self) { index in
+                        Text("\(viewModel.categories[index].icon) \(viewModel.categories[index].name)")
+                            .tag(index)
                     }
-                } label: {
-                    HStack {
-                        Text(selectedCategory.map { "\($0.icon) \($0.name)" } ?? "Choose category")
-                            .foregroundStyle(.white)
-                        Spacer()
-                        Image(systemName: "chevron.down")
-                            .foregroundStyle(.gray)
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.07))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
+                .pickerStyle(.menu)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(Color.white.opacity(0.07))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -63,9 +58,8 @@ struct AddExpenseSheet: View {
             }
 
             Button {
-                guard let category = selectedCategory,
-                      let amountValue = Double(amount) else { return }
-                viewModel.addExpense(categoryName: category.name, amount: amountValue, note: "")
+                guard let amountValue = Double(amount) else { return }
+                viewModel.addExpense(categoryName: selectedCategory.name, amount: amountValue, note: "")
                 dismiss()
             } label: {
                 Text("Save expense")
@@ -79,8 +73,5 @@ struct AddExpenseSheet: View {
             .padding(.top, 8)
         }
         .padding(20)
-        .onAppear {
-            selectedCategory = viewModel.categories.first
-        }
     }
 }
