@@ -14,5 +14,6 @@ extension Color {
     static let inactiveText = Color(red: 0.102, green: 0.678, blue: 0.945)
     static let appBackgroundColor = Color(red: 0.137, green: 0.157, blue: 0.169)
     static let sheetColor = Color(red: 0.141, green: 0.157, blue: 0.169)
+    static let cardBackground = Color(red: 0.165, green: 0.184, blue: 0.192)
     static let blueShadow = Color(red: 26/255, green: 173/255, blue: 241/255).opacity(0.4)
 }

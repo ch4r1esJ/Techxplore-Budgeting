@@ -55,7 +55,7 @@ struct BudgetChart: View {
         .chartLegend(position: .bottom, alignment: .center, spacing: 20)
         .frame(height: 250)
         .padding(24)
-        .background(Color(red: 0.165, green: 0.184, blue: 0.192))
+        .background(Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)

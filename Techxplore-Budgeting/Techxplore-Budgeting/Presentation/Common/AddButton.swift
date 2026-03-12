@@ -9,24 +9,16 @@ import SwiftUI
 
 struct AddButton: View {
     var action: () -> Void
-    
+
     var body: some View {
-        VStack {
-            Spacer()
-            HStack {
-                Spacer()
-                Button(action: action) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 64, height: 64)
-                        .background(Color.activePill)
-                        .clipShape(Circle())
-                        .shadow(color: Color.blueShadow, radius: 6, x: 0, y: 4)
-                }
-                .padding(.trailing, 20)
-                .padding(.bottom, 30)
-            }
+        Button(action: action) {
+            Image(systemName: "plus")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 64, height: 64)
+                .background(Color.activePill)
+                .clipShape(Circle())
+                .shadow(color: Color.blueShadow, radius: 6, x: 0, y: 4)
         }
     }
 }

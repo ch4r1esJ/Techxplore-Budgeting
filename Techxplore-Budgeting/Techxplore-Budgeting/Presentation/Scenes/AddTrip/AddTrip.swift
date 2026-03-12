@@ -9,8 +9,6 @@ import SwiftUI
 
 struct AddTrip: View {
     @ObservedObject var viewModel: HomeViewModel
-        
-    let purposes = ["Sightseeing", "Visit Friends", "Business", "Leisure", "Adventure", "Culture & Art"]
     
     var body: some View {
         ScrollView(showsIndicators: false) {
