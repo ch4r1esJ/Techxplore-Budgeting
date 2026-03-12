@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct CustomPicker: View {
-    @Binding var selection: TimeCategories
+    @Binding var selection: TripTimeCategory
     @Namespace private var animation
     
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(TimeCategories.allCases, id: \.self) { filter in
+            ForEach(TripTimeCategory.allCases, id: \.self) { filter in
                 Text(filter.rawValue)
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(selection == filter ? .white : Color.inactiveText)
+                    .foregroundStyle(selection == filter ? .white : Color.inactiveText)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background {

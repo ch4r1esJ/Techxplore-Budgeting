@@ -7,14 +7,8 @@
 
 import SwiftUI
 
-enum TimeCategories: String, CaseIterable {
-    case future = "Future"
-    case current = "Ongoing"
-    case past = "Past"
-}
-
 struct Homeview: View {
-    @State private var selectedFilter: TimeCategories = .current
+    @StateObject var viewModel = HomeViewModel()
     
     var body: some View {
         ZStack {
@@ -23,12 +17,26 @@ struct Homeview: View {
             
             VStack(spacing: 10) {
                 HeaderView(icon: "✈️", title: "Travel Budget")
-                CustomPicker(selection: $selectedFilter)
-                    .padding(.horizontal, 20)
-                BudgetChart()
+                CustomPicker(selection: $viewModel.selectedFilter)
+//                    .padding(.horizontal, 20)
+                BudgetChart(
+                    data: viewModel.budgetData,
+                    total: viewModel.totalBudget
+                )
                     .padding(.top, 5)
-             
+                
                 Spacer()
+                AddButton {
+                    viewModel.isShowingAddTrip = true
+                }
+                .sheet(isPresented: $viewModel.isShowingAddTrip, onDismiss: {
+                    viewModel.resetForm()
+                }) {
+                    AddTrip(viewModel: viewModel)
+                        .presentationDetents([.fraction(0.85), .large])
+                        .presentationDragIndicator(.visible)
+                        .presentationBackground(Color.customContainer)
+                }
             }
         }
     }

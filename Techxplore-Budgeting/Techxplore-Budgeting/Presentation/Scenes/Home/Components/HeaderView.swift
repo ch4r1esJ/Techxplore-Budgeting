@@ -18,7 +18,7 @@ struct HeaderView: View {
             
             Text(title)
                 .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -26,7 +26,7 @@ struct HeaderView: View {
         .overlay(
             Rectangle()
                 .frame(height: 1)
-                .foregroundColor(Color(red: 0.18, green: 0.18, blue: 0.22)),
+                .foregroundStyle(Color(red: 0.18, green: 0.18, blue: 0.22)),
             alignment: .bottom
         )
     }
