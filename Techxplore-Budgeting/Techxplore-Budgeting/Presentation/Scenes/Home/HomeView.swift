@@ -17,15 +17,21 @@ struct Homeview: View {
     @State private var selectedFilter: TimeCategories = .current
     
     var body: some View {
-            ZStack {
-                BackgroundColor(color: Color(red: 0.137, green: 0.157, blue: 0.169))
-                
-                VStack(spacing: 40) {
-                    CustomPicker(selection: $selectedFilter)
-                        .padding(.horizontal, 20)
-                }
+        ZStack {
+            Color.appBackgroundColor
+                .ignoresSafeArea()
+            
+            VStack(spacing: 10) {
+                HeaderView(icon: "✈️", title: "Travel Budget")
+                CustomPicker(selection: $selectedFilter)
+                    .padding(.horizontal, 20)
+                BudgetChart()
+                    .padding(.top, 5)
+             
+                Spacer()
             }
         }
+    }
 }
 
 #Preview {
