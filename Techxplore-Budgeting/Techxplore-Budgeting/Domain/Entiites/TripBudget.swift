@@ -1,5 +1,5 @@
 //
-//  TripData.swift
+//  TripBudget.swift
 //  Techxplore-Budgeting
 //
 //  Created by Charles Janjgava on 3/12/26.
@@ -16,6 +16,7 @@ struct TripBudget: Identifiable {
     let budget: Double
     let spent: Double
     let status: TripStatus
+    let categories: [TripCategory]
 
     var daysCount: Int {
         Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0

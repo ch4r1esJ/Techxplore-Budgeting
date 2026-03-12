@@ -8,10 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
+    let container = AppDIContainer()
+
     var body: some View {
-        VStack {
-            Homeview()
-        }
+        Homeview(
+            viewModel: container.makeHomeViewModel(),
+            container: container
+        )
     }
 }
 

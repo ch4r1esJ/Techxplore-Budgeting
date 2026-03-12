@@ -8,29 +8,26 @@
 import SwiftUI
 
 struct Homeview: View {
-    @StateObject var viewModel = HomeViewModel()
-    
+    @StateObject var viewModel: HomeViewModel
+    let container: AppDIContainer
+
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
-                Color.appBackgroundColor
-                    .ignoresSafeArea()
-                
+                Color.appBackgroundColor.ignoresSafeArea()
+
                 VStack(spacing: 10) {
                     HeaderView(icon: "✈️", title: "Travel Budget")
                     CustomPicker(selection: $viewModel.selectedFilter)
                         .padding(.horizontal, 20)
-                    BudgetChart(
-                        data: viewModel.budgetData,
-                        total: viewModel.totalBudget
-                    )
-                    .padding(.top, 5)
-                    
+                    BudgetChart(data: viewModel.budgetData, total: viewModel.totalBudget)
+                        .padding(.top, 5)
+
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 10) {
-                            ForEach(viewModel.trips) { trip in
+                            ForEach(viewModel.filteredTrips) { trip in
                                 NavigationLink(destination: TripDetailView(
-                                    viewModel: TripDetailViewModel(trip: trip)
+                                    viewModel: container.makeTripDetailViewModel(trip: trip)
                                 )) {
                                     TripBudgetCard(trip: trip)
                                 }
@@ -41,26 +38,17 @@ struct Homeview: View {
                         .padding(.bottom, 20)
                     }
                 }
-                
-                AddButton {
-                    viewModel.isShowingAddTrip = true
-                }
-                .padding(.trailing, 20)
-                .padding(.bottom, 30)
-                .sheet(isPresented: $viewModel.isShowingAddTrip, onDismiss: {
-                    viewModel.resetForm()
-                }) {
-                    AddTrip(viewModel: viewModel)
-                        .presentationDetents([.fraction(0.85), .large])
-                        .presentationDragIndicator(.visible)
-                        .presentationBackground(Color.customContainer)
-                }
+
+                AddButton { viewModel.isShowingAddTrip = true }
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 30)
+                    .sheet(isPresented: $viewModel.isShowingAddTrip, onDismiss: { viewModel.resetForm() }) {
+                        AddTrip(viewModel: viewModel)
+                            .presentationDetents([.fraction(0.85), .large])
+                            .presentationDragIndicator(.visible)
+                            .presentationBackground(Color.customContainer)
+                    }
             }
         }
     }
 }
-
-#Preview {
-    Homeview()
-}
-

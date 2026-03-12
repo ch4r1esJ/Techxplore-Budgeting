@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TripBudgetCard: View {
-    @StateObject var viewModel = TripBudgetViewModel()
+    @StateObject var viewModel: TripBudgetViewModel
     
     init(trip: TripBudget) {
         _viewModel = StateObject(wrappedValue: TripBudgetViewModel(trip: trip))

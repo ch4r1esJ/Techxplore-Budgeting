@@ -8,16 +8,21 @@
 import SwiftUI
 import Combine
 
-class TripDetailViewModel: ObservableObject {
-    @Published var categories: [TripCategory] = []
+final class TripDetailViewModel: ObservableObject {
+    @Published var categories: [TripCategory]
     @Published var expenses: [Expense] = []
     @Published var isShowingAddExpense = false
 
     let trip: TripBudget
 
-    init(trip: TripBudget) {
+    private let addExpenseUseCase: AddExpenseUseCase
+    private let updateBudgetUseCase: UpdateBudgetUseCase
+
+    init(trip: TripBudget, addExpenseUseCase: AddExpenseUseCase, updateBudgetUseCase: UpdateBudgetUseCase) {
         self.trip = trip
-        loadMockData()
+        self.categories = trip.categories
+        self.addExpenseUseCase = addExpenseUseCase
+        self.updateBudgetUseCase = updateBudgetUseCase
     }
 
     var totalBudget: Double {
@@ -35,11 +40,10 @@ class TripDetailViewModel: ObservableObject {
     var budgetStatusColor: Color {
         totalSpent > totalBudget ? .red : Color.activePill
     }
-    
+
     var totalSpentColor: Color {
         totalSpent > totalBudget ? .red : .white
     }
-    
 
     var dateRange: String {
         let formatter = DateFormatter()
@@ -55,29 +59,20 @@ class TripDetailViewModel: ObservableObject {
         "🤖 AI · \(daysCount)-day adventure trip to \(trip.destination)"
     }
 
-    func addExpense(categoryName: String, amount: Double, note: String) {
-        let expense = Expense(categoryName: categoryName, amount: amount, date: Date(), note: note)
-        expenses.append(expense)
+    func addExpense(categoryName: String, amount: Double) {
+        addExpenseUseCase.execute(
+            categories: &categories,
+            expenses: &expenses,
+            categoryName: categoryName,
+            amount: amount
+        )
+    }
 
-        if let index = categories.firstIndex(where: { $0.name == categoryName }) {
-            categories[index].spentAmount += amount
-        }
-    }
-    
     func updateBudget(for categoryName: String, amount: Double) {
-        guard let index = categories.firstIndex(where: { $0.name == categoryName }) else { return }
-        categories[index].budgetAmount = amount
-    }
-    
-    private func loadMockData() {
-        categories = [
-            TripCategory(name: "Accommodation", icon: "🏨", color: Color(red: 0.6, green: 0.5, blue: 0.9), budgetAmount: 15000, spentAmount: 0),
-            TripCategory(name: "Food",          icon: "🍽️", color: Color(red: 0.8, green: 0.7, blue: 0.3), budgetAmount: 10000, spentAmount: 0),
-            TripCategory(name: "Transport",     icon: "✈️", color: Color(red: 0.3, green: 0.7, blue: 0.8), budgetAmount: 9000,  spentAmount: 0),
-            TripCategory(name: "Sightseeing",   icon: "🏛️", color: Color(red: 0.9, green: 0.6, blue: 0.4), budgetAmount: 7500,  spentAmount: 0),
-            TripCategory(name: "Shopping",      icon: "🛍️", color: Color(red: 0.5, green: 0.8, blue: 0.6), budgetAmount: 7000,  spentAmount: 0),
-            TripCategory(name: "Health",        icon: "🏥", color: Color(red: 0.4, green: 0.6, blue: 0.9), budgetAmount: 1000,  spentAmount: 0),
-            TripCategory(name: "Misc",          icon: "📦", color: Color(red: 0.5, green: 0.5, blue: 0.5), budgetAmount: 500,   spentAmount: 0)
-        ]
+        updateBudgetUseCase.execute(
+            categories: &categories,
+            categoryName: categoryName,
+            newBudget: amount
+        )
     }
 }

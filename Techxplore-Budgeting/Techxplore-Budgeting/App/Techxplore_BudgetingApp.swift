@@ -8,10 +8,15 @@
 import SwiftUI
 
 @main
-struct Techxplore_BudgetingApp: App {
+struct TechxploreBudgetingApp: App {
+    let container = AppDIContainer()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Homeview(
+                viewModel: container.makeHomeViewModel(),
+                container: container
+            )
         }
     }
 }

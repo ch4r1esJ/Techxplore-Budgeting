@@ -59,7 +59,7 @@ struct AddExpenseSheet: View {
 
             Button {
                 guard let amountValue = Double(amount) else { return }
-                viewModel.addExpense(categoryName: selectedCategory.name, amount: amountValue, note: "")
+                viewModel.addExpense(categoryName: selectedCategory.name, amount: amountValue)
                 dismiss()
             } label: {
                 Text("Save expense")

@@ -14,32 +14,64 @@ enum TripTimeCategory: String, CaseIterable {
     case past = "Past"
 }
 
-class HomeViewModel: ObservableObject {
+final class HomeViewModel: ObservableObject {
     @Published var selectedFilter: TripTimeCategory = .current
     @Published var isShowingAddTrip = false
-    
+    @Published var trips: [TripBudget] = []
+
     @Published var country: String = ""
     @Published var startDate: Date = Date()
-    @Published var endDate = Date()
+    @Published var endDate: Date = Date()
     @Published var budget: String = ""
     @Published var selectedPurposes: Set<String> = []
-    
-    @Published var budgetData: [BudgetCategory] = []
-    @Published var trips: [TripBudget] = []
-    
-    init() {
-        loadMockData()
-    }
-    
+
     let availablePurposes = [
         "Sightseeing", "Visit Friends", "Business",
         "Leisure", "Adventure", "Culture & Art"
     ]
-    
-    var totalBudget: Double {
-        budgetData.reduce(0) { $0 + $1.amount }
+
+    private let fetchTripsUseCase: FetchTripsUseCase
+
+    init(fetchTripsUseCase: FetchTripsUseCase) {
+        self.fetchTripsUseCase = fetchTripsUseCase
+        loadTrips()
     }
-    
+
+    var filteredTrips: [TripBudget] {
+        trips.filter { trip in
+            switch selectedFilter {
+            case .future:  return trip.status == .future
+            case .current: return trip.status == .ongoing
+            case .past:    return trip.status == .completed
+            }
+        }
+    }
+
+    var totalBudget: Double {
+        filteredTrips.reduce(0) { $0 + $1.budget }
+    }
+
+    var budgetData: [BudgetCategory] {
+        var seen: [String] = []
+        var totals: [String: (Double, String, Color)] = [:]
+
+        for trip in filteredTrips {
+            for category in trip.categories {
+                if totals[category.name] == nil {
+                    seen.append(category.name)
+                    totals[category.name] = (category.budgetAmount, category.icon, category.color)
+                } else {
+                    totals[category.name]!.0 += category.budgetAmount
+                }
+            }
+        }
+
+        return seen.compactMap { name in
+            guard let data = totals[name] else { return nil }
+            return BudgetCategory(name: name, amount: data.0, icon: data.1, color: data.2)
+        }
+    }
+
     func togglePurpose(_ purpose: String) {
         if selectedPurposes.contains(purpose) {
             selectedPurposes.remove(purpose)
@@ -47,7 +79,7 @@ class HomeViewModel: ObservableObject {
             selectedPurposes.insert(purpose)
         }
     }
-    
+
     func resetForm() {
         country = ""
         startDate = Date()
@@ -55,44 +87,8 @@ class HomeViewModel: ObservableObject {
         budget = ""
         selectedPurposes.removeAll()
     }
-    
-    func loadMockData() {
-        budgetData = [
-            BudgetCategory(name: "Accommodation", amount: 13200, icon: "🏨", color: Color(red: 0.6, green: 0.5, blue: 0.9)),
-            BudgetCategory(name: "Food", amount: 8250, icon: "🍽️", color: Color(red: 0.8, green: 0.7, blue: 0.3)),
-            BudgetCategory(name: "Transport", amount: 4950, icon: "✈️", color: Color(red: 0.3, green: 0.7, blue: 0.8)),
-            BudgetCategory(name: "Sightseeing", amount: 3300, icon: "🏛️", color: Color(red: 0.9, green: 0.6, blue: 0.4)),
-            BudgetCategory(name: "Shopping", amount: 3300, icon: "🛍️", color: Color(red: 0.5, green: 0.8, blue: 0.6))
-        ]
-        
-        trips = [
-            TripBudget(
-                destination: "Japan",
-                flag: "🇯🇵",
-                startDate: Calendar.current.date(from: DateComponents(year: 2024, month: 10, day: 5))!,
-                endDate: Calendar.current.date(from: DateComponents(year: 2024, month: 10, day: 19))!,
-                budget: 3100,
-                spent: 4000,
-                status: .ongoing,
-            ),
-            TripBudget(
-                destination: "Georgia",
-                flag: "🇬🇪",
-                startDate: Calendar.current.date(from: DateComponents(year: 2026, month: 3, day: 4))!,
-                endDate: Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 1))!,
-                budget: 50000,
-                spent: 500,
-                status: .future,
-            ),
-            TripBudget(
-                destination: "Italy",
-                flag: "🇮🇹",
-                startDate: Calendar.current.date(from: DateComponents(year: 2026, month: 3, day: 4))!,
-                endDate: Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 1))!,
-                budget: 500,
-                spent: 1000,
-                status: .completed,
-            )
-        ]
+
+    private func loadTrips() {
+        trips = fetchTripsUseCase.execute()
     }
 }

@@ -57,6 +57,3 @@ struct AddTrip: View {
     }
 }
 
-#Preview  {
-    AddTrip(viewModel: HomeViewModel())
-}
