@@ -29,12 +29,12 @@ struct Homeview: View {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 10) {
                             ForEach(viewModel.trips) { trip in
-//                                NavigationLink(destination: TripDetailView(
-//                                    viewModel: TripDetailViewModel(trip: trip)
-//                                )) {
+                                NavigationLink(destination: TripDetailView(
+                                    viewModel: TripDetailViewModel(trip: trip)
+                                )) {
                                     TripBudgetCard(trip: trip)
-//                                }
-//                                .buttonStyle(.plain)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                         .padding(.top, 5)

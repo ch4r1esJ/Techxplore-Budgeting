@@ -15,7 +15,6 @@ struct TripBudget: Identifiable {
     let endDate: Date
     let budget: Double
     let spent: Double
-//    let categories: [BudgetCategory]
     let status: TripStatus
 
     var daysCount: Int {
