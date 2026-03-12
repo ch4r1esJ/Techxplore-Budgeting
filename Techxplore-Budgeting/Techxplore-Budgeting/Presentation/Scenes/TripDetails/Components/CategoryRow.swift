@@ -17,7 +17,7 @@ struct CategoryRow: View {
 
     var progress: Double {
         guard category.budgetAmount > 0 else { return 0 }
-        return min(category.spentAmount / category.budgetAmount, 1.0)
+        return category.spentAmount / category.budgetAmount
     }
 
     var isOverBudget: Bool {
@@ -32,14 +32,19 @@ struct CategoryRow: View {
                         .fill(category.color.opacity(0.25))
                         .frame(width: 48, height: 48)
                     Text(category.icon)
-                        .font(.system(size: 22))
+                        .font(.system(size: 18))
                 }
 
-                if !isEditing {
+                VStack(alignment: .leading, spacing: 10) {
                     Text(category.name)
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundStyle(.white)
+                        .lineLimit(1)
+
+                    Text("₾\(Int(category.spentAmount)) Spent")
+                        .font(.caption)
+                        .foregroundStyle(.gray)
                 }
 
                 Spacer()
@@ -81,28 +86,43 @@ struct CategoryRow: View {
                     }
 
                 } else {
-                    Text("₾\(Int(category.spentAmount)) / ₾\(Int(category.budgetAmount))")
-                        .font(.caption)
-                        .foregroundStyle(isOverBudget ? .red : .gray)
-                        .lineLimit(1)
-
-                    if isEditable {
-                        Button {
-                            editText = "\(Int(category.budgetAmount))"
-                            isEditing = true
-                        } label: {
-                            Image(systemName: "pencil")
+                    VStack(alignment: .trailing, spacing: 15) {
+                        HStack(spacing: 4) {
+                            Text("₾\(Int(category.spentAmount)) / ₾\(Int(category.budgetAmount))")
                                 .font(.caption)
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(isOverBudget ? .red : .gray)
+                                .lineLimit(1)
+
+                            if isEditable {
+                                Button {
+                                    editText = "\(Int(category.budgetAmount))"
+                                    isEditing = true
+                                } label: {
+                                    Image(systemName: "square.and.pencil")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.blue)
+                                }
+                            }
                         }
+
+                        Text("\(Int(progress * 100))%")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(isOverBudget ? .red : Color.activePill)
                     }
                 }
             }
 
-            ProgressView(value: progress)
-                .tint(isOverBudget ? .red : category.color)
-                .background(Color.white.opacity(0.1))
-                .clipShape(Capsule())
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.white.opacity(0.1))
+                    Capsule()
+                        .fill(isOverBudget ? Color.red : category.color)
+                        .frame(width: geo.size.width * min(progress, 1.0))
+                }
+            }
+            .frame(height: 10)
         }
         .padding(14)
         .background(Color.white.opacity(0.06))
