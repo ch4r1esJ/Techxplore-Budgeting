@@ -78,6 +78,8 @@ struct TripDetailChart: View {
                 if percentage > 0.1 {
                     Text(item.icon)
                         .font(.system(size: 9))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .multilineTextAlignment(.center)
                         .opacity(isAnimated ? 1 : 0)
                 }
             }

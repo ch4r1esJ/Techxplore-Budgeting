@@ -18,8 +18,8 @@ struct BudgetChart: View {
         Chart(data) { category in
             SectorMark(
                 angle: .value("Amount", isAnimated ? category.amount : 0),
-                innerRadius: .ratio(0.7),
-                angularInset: 3.0
+                innerRadius: .ratio(0.75),
+                angularInset: 2.0
             )
             .foregroundStyle(by: .value("Category", category.name))
             .cornerRadius(4)
