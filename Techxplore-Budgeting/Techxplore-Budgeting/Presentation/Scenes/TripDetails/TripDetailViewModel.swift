@@ -12,22 +12,40 @@ final class TripDetailViewModel: ObservableObject {
     @Published var categories: [TripCategory]
     @Published var expenses: [Expense] = []
     @Published var isShowingAddExpense = false
-
+    @Published var aiInsight: String = ""
+    @Published var isLoadingInsight: Bool = false
+    
     let trip: TripBudget
 
     private let addExpenseUseCase: AddExpenseUseCase
     private let updateBudgetUseCase: UpdateBudgetUseCase
     private let notificationService: NotificationServiceProtocol
+    private let generateTripInsightUseCase: GenerateTripInsightUseCase
 
     init(trip: TripBudget,
          addExpenseUseCase: AddExpenseUseCase,
          updateBudgetUseCase: UpdateBudgetUseCase,
-         notificationService: NotificationServiceProtocol) {
+         notificationService: NotificationServiceProtocol,
+         generateTripInsightUseCase: GenerateTripInsightUseCase) {
         self.trip = trip
         self.categories = trip.categories
         self.addExpenseUseCase = addExpenseUseCase
         self.updateBudgetUseCase = updateBudgetUseCase
         self.notificationService = notificationService
+        self.generateTripInsightUseCase = generateTripInsightUseCase
+        loadInsight()
+    }
+    
+    private func loadInsight() {
+        isLoadingInsight = true
+        Task { @MainActor in
+            do {
+                aiInsight = try await generateTripInsightUseCase.execute(trip: trip)
+            } catch {
+                aiInsight = "\(trip.daysCount)-day trip to \(trip.destination)"
+            }
+            isLoadingInsight = false
+        }
     }
 
     var totalBudget: Double {

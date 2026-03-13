@@ -5,20 +5,20 @@
 //  Created by Charles Janjgava on 3/13/26.
 //
 
-
 import Foundation
 
 final class AppDIContainer {
 
-    lazy var tripRepository: TripRepositoryProtocol = MockTripRepository()
+    lazy var tripRepository: TripRepositoryProtocol = MockTripRepository() // NetworkTripRepository
 
     lazy var fetchTripsUseCase = FetchTripsUseCase(repository: tripRepository)
     lazy var addExpenseUseCase = AddExpenseUseCase()
     lazy var updateBudgetUseCase = UpdateBudgetUseCase()
-    
-    lazy var aiBudgetRepository: AIBudgetRepositoryProtocol = FirebaseAIBudgetRepository()
+
+    lazy var aiBudgetRepository: AIBudgetRepositoryProtocol = AlgorithmBudgetRepository() // FirebaseAIBudgetRepository
     lazy var generateBudgetUseCase = GenerateBudgetUseCase(repository: aiBudgetRepository)
-    
+    lazy var generateTripInsightUseCase = GenerateTripInsightUseCase(repository: aiBudgetRepository)
+
     lazy var notificationService: NotificationServiceProtocol = LocalNotificationService()
 
     func makeHomeViewModel() -> HomeViewModel {
@@ -33,7 +33,8 @@ final class AppDIContainer {
             trip: trip,
             addExpenseUseCase: addExpenseUseCase,
             updateBudgetUseCase: updateBudgetUseCase,
-            notificationService: notificationService
+            notificationService: notificationService,
+            generateTripInsightUseCase: generateTripInsightUseCase
         )
     }
 }

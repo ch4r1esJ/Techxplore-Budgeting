@@ -8,7 +8,7 @@
 import Foundation
 
 struct TripBudget: Identifiable {
-    let id = UUID()
+    let id: String  // TODO: Change to id: String
     let destination: String
     let flag: String
     let startDate: Date

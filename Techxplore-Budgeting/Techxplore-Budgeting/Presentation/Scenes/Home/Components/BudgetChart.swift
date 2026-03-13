@@ -60,7 +60,6 @@ struct BudgetChart: View {
             .padding(.top, 24)
             .padding(.horizontal, 24)
 
-            // Custom 2-column legend
             let columns = [
                 GridItem(.flexible(), alignment: .leading),
                 GridItem(.flexible(), alignment: .leading),

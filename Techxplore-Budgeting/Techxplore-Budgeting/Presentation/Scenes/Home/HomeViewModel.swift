@@ -18,6 +18,7 @@ final class HomeViewModel: ObservableObject {
     @Published var selectedFilter: TripTimeCategory = .current
     @Published var isShowingAddTrip = false
     @Published var trips: [TripBudget] = []
+    @Published var isLoadingTrips = false
 
     @Published var country: String = ""
     @Published var startDate: Date = Date()
@@ -94,6 +95,18 @@ final class HomeViewModel: ObservableObject {
         generationError = nil
     }
 
+    func loadTrips() {
+        isLoadingTrips = true
+        Task { @MainActor in
+            do {
+                trips = try await fetchTripsUseCase.execute()
+            } catch {
+                print("Failed to load trips: \(error)")
+            }
+            isLoadingTrips = false
+        }
+    }
+
     func generateBudgetPlan() {
         guard let budgetValue = Double(budget), !country.isEmpty else {
             generationError = "Please fill in country and budget"
@@ -114,6 +127,7 @@ final class HomeViewModel: ObservableObject {
                 )
 
                 let newTrip = TripBudget(
+                    id: UUID().uuidString,
                     destination: country,
                     flag: flagFor(country),
                     startDate: startDate,
@@ -133,28 +147,24 @@ final class HomeViewModel: ObservableObject {
             isGenerating = false
         }
     }
-    
+
     private func flagFor(_ country: String) -> String {
         guard let regionCode = Locale.Region.isoRegions.first(where: {
             Locale.current.localizedString(forRegionCode: $0.identifier)?.lowercased() == country.lowercased()
         })?.identifier else { return "🌍" }
-        
+
         let flag = regionCode.unicodeScalars
             .compactMap { Unicode.Scalar(127397 + $0.value) }
             .map { String($0) }
             .joined()
-        
+
         return flag.isEmpty ? "🌍" : flag
     }
-    
+
     private func tripStatus(start: Date, end: Date) -> TripStatus {
         let now = Date()
         if now < start { return .future }
         if now > end   { return .completed }
         return .ongoing
-    }
-
-    private func loadTrips() {
-        trips = fetchTripsUseCase.execute()
     }
 }

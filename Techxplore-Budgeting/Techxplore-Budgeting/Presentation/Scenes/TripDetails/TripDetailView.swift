@@ -109,17 +109,36 @@ struct TripDetailView: View {
 
 
     private var aiText: some View {
-        Text(viewModel.aiSuggestion)
-            .font(.subheadline)
-            .foregroundStyle(Color.activePill)
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.activePill.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.activePill.opacity(0.3), lineWidth: 1)
-            )
+        HStack(spacing: 10) {
+            Text("🤖")
+                .font(.title3)
+
+            if viewModel.isLoadingInsight {
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .tint(Color.activePill)
+                        .scaleEffect(0.8)
+                    Text("Analyzing your trip...")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.activePill.opacity(0.7))
+                }
+            } else {
+                Text(viewModel.aiInsight)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.activePill)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.activePill.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.activePill.opacity(0.3), lineWidth: 1)
+        )
     }
     
     private var chartSection: some View {

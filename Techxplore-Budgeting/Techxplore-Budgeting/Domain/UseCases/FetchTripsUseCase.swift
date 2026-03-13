@@ -14,7 +14,7 @@ final class FetchTripsUseCase {
         self.repository = repository
     }
 
-    func execute() -> [TripBudget] {
-        repository.fetchTrips()
+    func execute() async throws -> [TripBudget] {
+        try await repository.fetchTrips()
     }
 }
