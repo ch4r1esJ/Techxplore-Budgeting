@@ -17,12 +17,17 @@ final class TripDetailViewModel: ObservableObject {
 
     private let addExpenseUseCase: AddExpenseUseCase
     private let updateBudgetUseCase: UpdateBudgetUseCase
+    private let notificationService: NotificationServiceProtocol
 
-    init(trip: TripBudget, addExpenseUseCase: AddExpenseUseCase, updateBudgetUseCase: UpdateBudgetUseCase) {
+    init(trip: TripBudget,
+         addExpenseUseCase: AddExpenseUseCase,
+         updateBudgetUseCase: UpdateBudgetUseCase,
+         notificationService: NotificationServiceProtocol) {
         self.trip = trip
         self.categories = trip.categories
         self.addExpenseUseCase = addExpenseUseCase
         self.updateBudgetUseCase = updateBudgetUseCase
+        self.notificationService = notificationService
     }
 
     var totalBudget: Double {
@@ -66,6 +71,10 @@ final class TripDetailViewModel: ObservableObject {
             categoryName: categoryName,
             amount: amount
         )
+
+        if let category = categories.first(where: { $0.name == categoryName }) {
+            notificationService.scheduleIfNeeded(category: category, destination: trip.destination)
+        }
     }
 
     func updateBudget(for categoryName: String, amount: Double) {

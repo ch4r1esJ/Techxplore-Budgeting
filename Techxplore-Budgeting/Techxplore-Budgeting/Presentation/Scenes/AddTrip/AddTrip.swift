@@ -9,28 +9,23 @@ import SwiftUI
 
 struct AddTrip: View {
     @ObservedObject var viewModel: HomeViewModel
-    
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 24) {
-                
+
                 CenteredHeaderView(
                     title: "New Trip",
                     subtitle: "AI will create a personalized budget plan"
                 )
-                
-                CustomTextField(
-                    icon: "🌍",
-                    title: "Country",
-                    placeholder: "Search country...",
-                    text: $viewModel.country
-                )
-                
+
+                CountrySearchField(selectedCountry: $viewModel.country)
+
                 DateRangePickerView(
                     startDate: $viewModel.startDate,
                     endDate: $viewModel.endDate
                 )
-                
+
                 CustomTextField(
                     icon: "💰",
                     title: "Budget (₾)",
@@ -38,7 +33,7 @@ struct AddTrip: View {
                     text: $viewModel.budget,
                     keyboardType: .decimalPad
                 )
-                
+
                 PurposeSelectionView(
                     purposes: viewModel.availablePurposes,
                     selectedPurposes: $viewModel.selectedPurposes,
@@ -46,10 +41,28 @@ struct AddTrip: View {
                         viewModel.togglePurpose(purpose)
                     }
                 )
-                
-                GenerateBudgetButton {
-                    print("Tap")
+
+                if let error = viewModel.generationError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
+
+                GenerateBudgetButton {
+                    viewModel.generateBudgetPlan()
+                }
+                .disabled(viewModel.isGenerating)
+                .overlay(
+                    Group {
+                        if viewModel.isGenerating {
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.black.opacity(0.4))
+                            ProgressView()
+                                .tint(.white)
+                        }
+                    }
+                )
             }
             .padding(20)
         }
@@ -57,3 +70,7 @@ struct AddTrip: View {
     }
 }
 
+#Preview {
+    let container = AppDIContainer()
+    AddTrip(viewModel: container.makeHomeViewModel())
+}

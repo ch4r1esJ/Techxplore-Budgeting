@@ -6,11 +6,16 @@
 //
 
 import SwiftUI
+import Firebase
 
 @main
 struct TechxploreBudgetingApp: App {
     let container = AppDIContainer()
-
+    
+    init() {
+        FirebaseApp.configure()
+        container.notificationService.requestPermission()
+    }
     var body: some Scene {
         WindowGroup {
             Homeview(

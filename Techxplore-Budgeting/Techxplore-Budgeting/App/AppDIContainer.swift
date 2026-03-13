@@ -15,16 +15,25 @@ final class AppDIContainer {
     lazy var fetchTripsUseCase = FetchTripsUseCase(repository: tripRepository)
     lazy var addExpenseUseCase = AddExpenseUseCase()
     lazy var updateBudgetUseCase = UpdateBudgetUseCase()
+    
+    lazy var aiBudgetRepository: AIBudgetRepositoryProtocol = FirebaseAIBudgetRepository()
+    lazy var generateBudgetUseCase = GenerateBudgetUseCase(repository: aiBudgetRepository)
+    
+    lazy var notificationService: NotificationServiceProtocol = LocalNotificationService()
 
     func makeHomeViewModel() -> HomeViewModel {
-        HomeViewModel(fetchTripsUseCase: fetchTripsUseCase)
+        HomeViewModel(
+            fetchTripsUseCase: fetchTripsUseCase,
+            generateBudgetUseCase: generateBudgetUseCase
+        )
     }
 
     func makeTripDetailViewModel(trip: TripBudget) -> TripDetailViewModel {
         TripDetailViewModel(
             trip: trip,
             addExpenseUseCase: addExpenseUseCase,
-            updateBudgetUseCase: updateBudgetUseCase
+            updateBudgetUseCase: updateBudgetUseCase,
+            notificationService: notificationService
         )
     }
 }
