@@ -27,8 +27,9 @@ struct ExpenseRow: View {
                 Circle()
                     .fill((category?.color ?? .gray).opacity(0.25))
                     .frame(width: 48, height: 48)
-                Text(category?.icon ?? "💰")
+                Image(systemName: category?.icon ?? "dollarsign.circle")
                     .font(.system(size: 22))
+                    .foregroundStyle(category?.color ?? .gray)
             }
 
             VStack(alignment: .leading, spacing: 4) {

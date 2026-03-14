@@ -28,6 +28,7 @@ final class HomeViewModel: ObservableObject {
 
     @Published var isGenerating = false
     @Published var generationError: String? = nil
+    @Published var showSuccessToast = false
 
     let availablePurposes = [
         "Sightseeing", "Visit Friends", "Business",
@@ -36,10 +37,12 @@ final class HomeViewModel: ObservableObject {
 
     private let fetchTripsUseCase: FetchTripsUseCase
     private let generateBudgetUseCase: GenerateBudgetUseCase
+    private let tripRepository: TripRepositoryProtocol
 
-    init(fetchTripsUseCase: FetchTripsUseCase, generateBudgetUseCase: GenerateBudgetUseCase) {
+    init(fetchTripsUseCase: FetchTripsUseCase, generateBudgetUseCase: GenerateBudgetUseCase, tripRepository: TripRepositoryProtocol) {
         self.fetchTripsUseCase = fetchTripsUseCase
         self.generateBudgetUseCase = generateBudgetUseCase
+        self.tripRepository = tripRepository
         loadTrips()
     }
 
@@ -106,6 +109,19 @@ final class HomeViewModel: ObservableObject {
             isLoadingTrips = false
         }
     }
+    
+    func deleteTrip(_ trip: TripBudget) {
+        trips.removeAll { $0.id == trip.id }
+        Task { @MainActor in
+            do {
+                try await tripRepository.deleteTrip(id: trip.id)
+            } catch {
+                print("Failed to delete trip: \(error)")
+                loadTrips()
+            }
+        }
+    }
+
 
     func generateBudgetPlan() {
         guard let budgetValue = Double(budget), !country.isEmpty else {
@@ -138,10 +154,15 @@ final class HomeViewModel: ObservableObject {
                     categories: categories
                 )
 
-                trips.append(newTrip)
+                let savedTrip = try await tripRepository.addTrip(newTrip, categories: categories)
+                trips.append(savedTrip)
                 isShowingAddTrip = false
                 resetForm()
+                withAnimation {
+                    showSuccessToast = true
+                }
             } catch {
+                print("Generate/save error: \(error)")
                 generationError = "Failed to generate budget. Try again."
             }
             isGenerating = false

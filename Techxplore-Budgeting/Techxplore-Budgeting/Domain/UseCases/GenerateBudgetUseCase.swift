@@ -5,7 +5,6 @@
 //  Created by Charles Janjgava on 3/13/26.
 //
 
-
 import Foundation
 
 final class GenerateBudgetUseCase {

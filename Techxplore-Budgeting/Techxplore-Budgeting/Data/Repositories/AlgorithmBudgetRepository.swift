@@ -5,7 +5,6 @@
 //  Created by Charles Janjgava on 3/13/26.
 //
 
-
 import SwiftUI
 
 final class AlgorithmBudgetRepository: AIBudgetRepositoryProtocol {
@@ -23,12 +22,12 @@ final class AlgorithmBudgetRepository: AIBudgetRepositoryProtocol {
     private func calculateRatios(destination: String, purposes: [String]) -> [String: Double] {
         var ratios: [String: Double] = [
             "Accommodation": 0.35,
-            "Food":          0.25,
-            "Transport":     0.15,
-            "Shopping":      0.10,
-            "Health":        0.05,
-            "Misc":          0.05,
-            "Sightseeing":   0.05
+            "Food": 0.25,
+            "Transport": 0.15,
+            "Shopping": 0.10,
+            "Health": 0.05,
+            "Misc": 0.05,
+            "Sightseeing": 0.05
         ]
         
         let expensiveDestinations = ["france", "germany", "italy", "spain", "netherlands",

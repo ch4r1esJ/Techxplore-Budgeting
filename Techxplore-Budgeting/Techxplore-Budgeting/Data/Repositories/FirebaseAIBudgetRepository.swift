@@ -13,7 +13,7 @@ final class FirebaseAIBudgetRepository: AIBudgetRepositoryProtocol {
 
     init() {
         let ai = FirebaseAI.firebaseAI(backend: .googleAI())
-        self.model = ai.generativeModel(modelName: "gemini-3-flash-lite")
+        self.model = ai.generativeModel(modelName: "gemini-2.5-flash")
     }
 
     func generateBudget(
@@ -47,37 +47,28 @@ final class FirebaseAIBudgetRepository: AIBudgetRepositoryProtocol {
             - Southeast Asia (Thailand, Vietnam, Bali): accommodation ₾80-200/night, food ₾40-100/day, local transport ₾20-60/day
             - UAE/Qatar: accommodation ₾400-800/night, food ₾200-400/day, local transport ₾80-150/day
 
-            Purpose adjustments based on selected purposes:
-            - Sightseeing: allocate more to Sightseeing category, museums and tours cost money
-            - Culture & Art: allocate generously to Museums & Shows, this is the main activity
-            - Adventure: allocate more to Activities & Tours and Health (insurance, first aid kit)
-            - Business: increase Accommodation (business hotels are pricier), add Business Expenses
-            - Visit Friends: reduce Accommodation if staying with friends, allocate to Gifts & Souvenirs
+            Purpose adjustments:
+            - Sightseeing: allocate more to Sightseeing
+            - Culture & Art: allocate more to Sightseeing and Entertainment
+            - Adventure: increase Transportation (car/bike rental), add more to Misc
+            - Business: increase Accommodation (business hotels), add BusinessDinners and BankingInsurance
+            - Visit Friends: reduce Accommodation if staying with friends, add Beauty and Shopping for gifts
             - Leisure: balance evenly, slight bump in Entertainment and Food
-            - Shopping: allocate meaningfully to Shopping, this is a primary purpose
+            - Shopping: allocate meaningfully to Shopping
 
-            Transport category logic:
-            - Covers LOCAL transport only (metro, taxi, bus, tram within the destination city)
-            - International flights assumed already paid separately
-            - For adventure or road trip destinations, increase for car/bike rental
-
-            Accommodation logic:
-            - \(days) nights total, solo traveler, mid-range hotel or hostel
-            - Business travelers need higher-end hotels
-            - Visit Friends may have free accommodation — reduce significantly
+            Transportation covers LOCAL transport only (metro, taxi, bus within the city). International flights are assumed already paid.
 
             Smart budget rules:
             - Tight budget for expensive destination: prioritize Accommodation + Food, cut optional categories
-            - Generous budget: spread more to experience categories (Sightseeing, Entertainment, Shopping)
-            - Health: minimum ₾50 always (pharmacy, basic medical)
-            - Misc: minimum ₾50 always (tips, small unexpected costs)
+            - Generous budget: spread more to experience categories
+            - Misc: minimum ₾50 always
             - Every amount must be a whole positive integer
             - All amounts must sum to EXACTLY \(Int(totalBudget)) — this is critical
 
-            The categories to use are EXACTLY these — do not add or remove any:
+            The categories to use are EXACTLY these valid backend names — do not use any other names, do not add or remove any:
             \(categoryList)
 
-            Return ONLY the JSON array above with calculated amounts. No explanation, no markdown, no backticks, nothing else.
+            Return ONLY the JSON array with calculated amounts. No explanation, no markdown, no backticks, nothing else.
             """
 
             let response = try await model.generateContent(prompt)
@@ -95,9 +86,8 @@ final class FirebaseAIBudgetRepository: AIBudgetRepositoryProtocol {
                 purposes: purposes
             )
         }
-        
     }
-    
+
     func generateInsight(trip: TripBudget) async throws -> String {
         let categories = trip.categories.map { "\($0.name): ₾\(Int($0.budgetAmount))" }.joined(separator: ", ")
         let prompt = """
@@ -121,38 +111,65 @@ final class FirebaseAIBudgetRepository: AIBudgetRepositoryProtocol {
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    func analyzeProgress(
+        destination: String,
+        totalBudget: Double,
+        totalSpent: Double,
+        daysElapsed: Int,
+        daysRemaining: Int,
+        categories: [TripCategory]
+    ) async throws -> String {
+        let categoryBreakdown = categories.map {
+            "\($0.name): spent ₾\(Int($0.spentAmount)) of ₾\(Int($0.budgetAmount))"
+        }.joined(separator: ", ")
+
+        let dailyRate = daysElapsed > 0 ? totalSpent / Double(daysElapsed) : 0
+        let projectedTotal = totalSpent + dailyRate * Double(daysRemaining)
+
+        let prompt = """
+        You are a travel budget advisor. Analyze this trip's spending and give 2-3 sentences of specific advice.
+
+        Trip: \(destination)
+        Budget: ₾\(Int(totalBudget)), Spent so far: ₾\(Int(totalSpent))
+        Days elapsed: \(daysElapsed), Days remaining: \(daysRemaining)
+        Daily spend rate: ₾\(Int(dailyRate))/day
+        Projected total: ₾\(Int(projectedTotal))
+        Category breakdown: \(categoryBreakdown)
+
+        Be specific about which categories are over/under and give actionable advice.
+        Return ONLY the analysis text. No labels, no quotes, nothing else.
+        """
+
+        let response = try await model.generateContent(prompt)
+        guard let text = response.text else { throw AIBudgetError.emptyResponse }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     private func buildCategoryList(purposes: [String]) -> String {
         var categories: [(String, String)] = [
-            ("Accommodation", "🏨"),
-            ("Food", "🍽️"),
-            ("Transport", "✈️")
+            ("Accommodation", "bed.double"),
+            ("Food", "fork.knife"),
+            ("Transportation", "tram.fill")
         ]
 
-        if purposes.contains("Sightseeing") {
-            categories.append(("Sightseeing", "🏛️"))
+        if purposes.contains("Sightseeing") || purposes.contains("Culture & Art") {
+            categories.append(("Sightseeing", "binoculars.fill"))
         }
-        if purposes.contains("Culture & Art") {
-            categories.append(("Museums & Shows", "🎭"))
+        if purposes.contains("Leisure") || purposes.isEmpty {
+            categories.append(("Entertainment", "gamecontroller.fill"))
         }
-        if purposes.contains("Adventure") {
-            categories.append(("Activities & Tours", "🧗"))
+        if purposes.contains("Shopping") {
+            categories.append(("Shopping", "bag.fill"))
         }
         if purposes.contains("Business") {
-            categories.append(("Business Expenses", "💼"))
+            categories.append(("BusinessDinners", "briefcase.fill"))
+            categories.append(("BankingInsurance", "banknote.fill"))
         }
-        if purposes.contains("Visit Friends") {
-            categories.append(("Gifts & Souvenirs", "🎁"))
-        }
-        if purposes.contains("Leisure") {
-            categories.append(("Entertainment", "🎉"))
-        }
-        if purposes.contains("Shopping") || purposes.isEmpty {
-            categories.append(("Shopping", "🛍️"))
+        if purposes.contains("Adventure") || purposes.contains("Visit Friends") {
+            categories.append(("Beauty", "sparkles"))
         }
 
-        categories.append(("Health", "🏥"))
-        categories.append(("Misc", "📦"))
+        categories.append(("Misc", "square.grid.2x2.fill"))
 
         let lines = categories.map { name, icon in
             "  {\"name\": \"\(name)\", \"icon\": \"\(icon)\", \"budgetAmount\": <calculated>}"
@@ -185,18 +202,17 @@ final class FirebaseAIBudgetRepository: AIBudgetRepositoryProtocol {
 
     private func colorFor(_ name: String) -> Color {
         switch name {
-        case "Accommodation":     return Color(red: 0.6, green: 0.5, blue: 0.9)
-        case "Food":              return Color(red: 0.8, green: 0.7, blue: 0.3)
-        case "Transport":         return Color(red: 0.3, green: 0.7, blue: 0.8)
-        case "Sightseeing":       return Color(red: 0.9, green: 0.6, blue: 0.4)
-        case "Shopping":          return Color(red: 0.5, green: 0.8, blue: 0.6)
-        case "Health":            return Color(red: 0.4, green: 0.6, blue: 0.9)
-        case "Museums & Shows":   return Color(red: 0.8, green: 0.4, blue: 0.7)
-        case "Activities & Tours":return Color(red: 0.3, green: 0.8, blue: 0.5)
-        case "Business Expenses": return Color(red: 0.5, green: 0.6, blue: 0.8)
-        case "Gifts & Souvenirs": return Color(red: 0.9, green: 0.5, blue: 0.5)
-        case "Entertainment":     return Color(red: 0.7, green: 0.4, blue: 0.9)
-        default:                  return Color(red: 0.5, green: 0.5, blue: 0.5)
+        case "Accommodation":    return Color(red: 0.6, green: 0.5, blue: 0.9)
+        case "Food":             return Color(red: 0.8, green: 0.7, blue: 0.3)
+        case "Transportation":   return Color(red: 0.3, green: 0.7, blue: 0.8)
+        case "Sightseeing":      return Color(red: 0.9, green: 0.6, blue: 0.4)
+        case "Shopping":         return Color(red: 0.5, green: 0.8, blue: 0.6)
+        case "Entertainment":    return Color(red: 0.7, green: 0.4, blue: 0.9)
+        case "BusinessDinners":  return Color(red: 0.5, green: 0.6, blue: 0.8)
+        case "BankingInsurance": return Color(red: 0.4, green: 0.7, blue: 0.5)
+        case "Beauty":           return Color(red: 0.9, green: 0.5, blue: 0.7)
+        case "Misc":             return Color(red: 0.5, green: 0.5, blue: 0.5)
+        default:                 return Color(red: 0.5, green: 0.5, blue: 0.5)
         }
     }
 }

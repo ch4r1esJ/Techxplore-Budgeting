@@ -27,10 +27,12 @@ struct BudgetChart: View {
                 .annotation(position: .overlay) {
                     let dataTotal = data.reduce(0) { $0 + $1.amount }
                     let percentage = dataTotal > 0 ? category.amount / dataTotal : 0
-                    if percentage > 0.04 {
-                        Text(category.icon)
-                            .font(.system(size: 10))
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                    if percentage > 0.05 {
+                        Image(systemName: category.icon)
+                            .font(.system(size: 13))
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .opacity(isAnimated ? 1 : 0)
                     }
                 }

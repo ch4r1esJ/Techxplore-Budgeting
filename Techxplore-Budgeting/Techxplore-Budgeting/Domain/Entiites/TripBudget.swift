@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct TripBudget: Identifiable {
-    let id: String  // TODO: Change to id: String
+struct TripBudget: Identifiable, Hashable {
+    let id: String 
     let destination: String
     let flag: String
     let startDate: Date
