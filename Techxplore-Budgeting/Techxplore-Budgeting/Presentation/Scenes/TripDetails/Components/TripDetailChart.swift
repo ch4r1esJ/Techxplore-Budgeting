@@ -75,11 +75,10 @@ struct TripDetailChart: View {
             .cornerRadius(4)
             .annotation(position: .overlay) {
                 let percentage = item.amount / values.reduce(0) { $0 + $1.2 }
-                if percentage > 0.1 {
-                    Text(item.icon)
+                if percentage > 0.05 {
+                    Image(systemName: item.icon)
                         .font(.system(size: 9))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.white)
                         .opacity(isAnimated ? 1 : 0)
                 }
             }

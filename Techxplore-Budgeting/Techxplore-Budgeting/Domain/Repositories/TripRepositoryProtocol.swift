@@ -13,4 +13,5 @@ protocol TripRepositoryProtocol {
     func addTrip(_ trip: TripBudget, categories: [TripCategory]) async throws -> TripBudget
     func addExpense(tripId: String, categoryName: String, amount: Double) async throws
     func updateCategories(tripId: String, categories: [TripCategory]) async throws
+    func deleteTrip(id: String) async throws
 }

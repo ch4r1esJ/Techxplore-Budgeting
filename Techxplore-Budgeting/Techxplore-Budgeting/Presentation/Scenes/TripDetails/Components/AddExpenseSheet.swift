@@ -33,8 +33,11 @@ struct AddExpenseSheet: View {
 
                 Picker("", selection: $selectedIndex) {
                     ForEach(viewModel.categories.indices, id: \.self) { index in
-                        Text("\(viewModel.categories[index].icon) \(viewModel.categories[index].name)")
-                            .tag(index)
+                        Label(
+                            " " + viewModel.categories[index].name,
+                            systemImage: viewModel.categories[index].icon
+                        )
+                        .tag(index)
                     }
                 }
                 .pickerStyle(.menu)

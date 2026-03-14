@@ -25,10 +25,17 @@ struct CategoryRequest: Encodable {
 struct AddExpenseRequest: Encodable {
     let categoryName: String
     let amount: Double
+    let date: String
+    let note: String
 }
 
 struct UpdateCategoriesRequest: Encodable {
-    let categories: [CategoryRequest]
+    let categories: [UpdateCategoryRequest]
+}
+
+struct UpdateCategoryRequest: Encodable {
+    let name: String
+    let budgetAmount: Double
 }
 
 struct TripListItemDTO: Decodable {
@@ -41,8 +48,8 @@ struct TripListItemDTO: Decodable {
     let spent: Double
     let budgetStatus: String
     let status: String
+    let categories: [CategoryDetailDTO]?
 }
-
 struct TripDetailDTO: Decodable {
     let id: String
     let destination: String
@@ -53,29 +60,29 @@ struct TripDetailDTO: Decodable {
     let spent: Double
     let budgetStatus: String
     let status: String
-    let categories: [CategoryDetailDTO]
+    let categories: [CategoryDetailDTO]?
 }
 
 struct CategoryDetailDTO: Decodable {
     let name: String
-    let icon: String
-    let colorHex: String
+    let icon: String?
+    let colorHex: String?
     let budgetAmount: Double
     let spentAmount: Double
 }
 
 extension TripListItemDTO {
     func toDomain() -> TripBudget {
-        TripBudget(
+        return TripBudget(
             id: id,
             destination: destination,
             flag: flag,
-            startDate: DateFormatter.iso.date(from: startDate) ?? Date(),
-            endDate: DateFormatter.iso.date(from: endDate) ?? Date(),
+            startDate: ISO8601DateFormatter.parseDate(from: startDate),
+            endDate: ISO8601DateFormatter.parseDate(from: endDate),
             budget: budget,
             spent: spent,
             status: TripStatus(rawValue: status) ?? .future,
-            categories: []
+            categories: categories?.map { $0.toDomain() } ?? []
         )
     }
 }
@@ -86,12 +93,12 @@ extension TripDetailDTO {
             id: id,
             destination: destination,
             flag: flag,
-            startDate: DateFormatter.iso.date(from: startDate) ?? Date(),
-            endDate: DateFormatter.iso.date(from: endDate) ?? Date(),
+            startDate: ISO8601DateFormatter.parseDate(from: startDate),
+            endDate: ISO8601DateFormatter.parseDate(from: endDate),
             budget: budget,
             spent: spent,
             status: TripStatus(rawValue: status) ?? .future,
-            categories: categories.map { $0.toDomain() }
+            categories: categories?.map { $0.toDomain() } ?? []
         )
     }
 }
@@ -100,22 +107,46 @@ extension CategoryDetailDTO {
     func toDomain() -> TripCategory {
         TripCategory(
             name: name,
-            icon: icon,
-            color: Color(hex: colorHex),
+            icon: icon ?? "📦",
+            color: colorHex.map { Color(hex: $0) } ?? Color(red: 0.5, green: 0.5, blue: 0.5),
             budgetAmount: budgetAmount,
             spentAmount: spentAmount
         )
     }
 }
 
-extension DateFormatter {
-    static let iso: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+extension ISO8601DateFormatter {
+    static let iso: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return f
     }()
 
-    static func isoString(from date: Date) -> String {
-        iso.string(from: date)
+    static let isoNoFraction: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        return f
+    }()
+
+    static let plainFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
+    static let plainFormatterNoFraction: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
+    static func parseDate(from string: String) -> Date {
+        return iso.date(from: string)
+            ?? isoNoFraction.date(from: string)
+            ?? plainFormatter.date(from: string)
+            ?? plainFormatterNoFraction.date(from: string)
+            ?? Date()
     }
 }

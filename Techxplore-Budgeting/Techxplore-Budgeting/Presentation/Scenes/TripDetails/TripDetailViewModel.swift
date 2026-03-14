@@ -21,19 +21,34 @@ final class TripDetailViewModel: ObservableObject {
     private let updateBudgetUseCase: UpdateBudgetUseCase
     private let notificationService: NotificationServiceProtocol
     private let generateTripInsightUseCase: GenerateTripInsightUseCase
+    private let fetchTripDetailUseCase: FetchTripDetailUseCase
 
     init(trip: TripBudget,
          addExpenseUseCase: AddExpenseUseCase,
          updateBudgetUseCase: UpdateBudgetUseCase,
          notificationService: NotificationServiceProtocol,
-         generateTripInsightUseCase: GenerateTripInsightUseCase) {
+         generateTripInsightUseCase: GenerateTripInsightUseCase,
+         fetchTripDetailUseCase: FetchTripDetailUseCase) {
         self.trip = trip
         self.categories = trip.categories
         self.addExpenseUseCase = addExpenseUseCase
         self.updateBudgetUseCase = updateBudgetUseCase
         self.notificationService = notificationService
         self.generateTripInsightUseCase = generateTripInsightUseCase
+        self.fetchTripDetailUseCase = fetchTripDetailUseCase
         loadInsight()
+        loadTripDetail()
+    }
+    
+    private func loadTripDetail() {
+        Task { @MainActor in
+            do {
+                let detail = try await fetchTripDetailUseCase.execute(id: trip.id)
+                categories = detail.categories
+            } catch {
+                print("Failed to load trip detail: \(error)")
+            }
+        }
     }
     
     private func loadInsight() {

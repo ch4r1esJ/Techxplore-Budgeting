@@ -9,6 +9,7 @@ import SwiftUI
 
 struct Homeview: View {
     @StateObject var viewModel: HomeViewModel
+    @State private var selectedTrip: TripBudget? = nil
     let container: AppDIContainer
 
     var body: some View {
@@ -23,19 +24,55 @@ struct Homeview: View {
                     BudgetChart(data: viewModel.budgetData, total: viewModel.totalBudget)
                         .padding(.top, 5)
 
-                    ScrollView(showsIndicators: false) {
-                        VStack(spacing: 10) {
-                            ForEach(viewModel.filteredTrips) { trip in
-                                NavigationLink(destination: TripDetailView(
-                                    viewModel: container.makeTripDetailViewModel(trip: trip)
-                                )) {
-                                    TripBudgetCard(trip: trip)
+                    List {
+                        ForEach(viewModel.filteredTrips) { trip in
+                            TripBudgetCard(trip: trip)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0))
+                                .onTapGesture { selectedTrip = trip }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        viewModel.deleteTrip(trip)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
                                 }
-                                .buttonStyle(.plain)
+                        }
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .navigationDestination(item: $selectedTrip) { trip in
+                        TripDetailView(viewModel: container.makeTripDetailViewModel(trip: trip))
+                    }
+                }
+
+                if viewModel.showSuccessToast {
+                    VStack {
+                        HStack(spacing: 10) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                            Text("Trip added successfully!")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(Color.customContainer)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .shadow(color: .black.opacity(0.3), radius: 10)
+                        .padding(.top, 60)
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                            withAnimation {
+                                viewModel.showSuccessToast = false
                             }
                         }
-                        .padding(.top, 5)
-                        .padding(.bottom, 20)
                     }
                 }
 

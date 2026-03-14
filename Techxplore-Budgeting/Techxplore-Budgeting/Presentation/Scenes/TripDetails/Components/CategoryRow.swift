@@ -31,8 +31,10 @@ struct CategoryRow: View {
                     Circle()
                         .fill(category.color.opacity(0.25))
                         .frame(width: 48, height: 48)
-                    Text(category.icon)
+                    
+                    Image(systemName: category.icon)
                         .font(.system(size: 18))
+                        .foregroundStyle(category.color)
                 }
 
                 VStack(alignment: .leading, spacing: 10) {

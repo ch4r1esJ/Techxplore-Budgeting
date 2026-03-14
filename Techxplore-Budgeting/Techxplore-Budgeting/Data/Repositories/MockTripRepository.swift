@@ -33,6 +33,9 @@ final class MockTripRepository: TripRepositoryProtocol {
                 budget: 500, spent: 1000, status: .completed, categories: defaultCategories)
         ]
     }
+    
+    func deleteTrip(id: String) async throws {
+    }
 
     func fetchTripDetail(id: String) async throws -> TripBudget {
         let all = try await fetchTrips()

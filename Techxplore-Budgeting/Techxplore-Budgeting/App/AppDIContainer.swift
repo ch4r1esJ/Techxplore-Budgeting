@@ -9,22 +9,24 @@ import Foundation
 
 final class AppDIContainer {
 
-    lazy var tripRepository: TripRepositoryProtocol = MockTripRepository() // NetworkTripRepository
+    lazy var tripRepository: TripRepositoryProtocol = NetworkTripRepository() //  MockTripRepository 
 
     lazy var fetchTripsUseCase = FetchTripsUseCase(repository: tripRepository)
     lazy var addExpenseUseCase = AddExpenseUseCase()
     lazy var updateBudgetUseCase = UpdateBudgetUseCase()
 
-    lazy var aiBudgetRepository: AIBudgetRepositoryProtocol = AlgorithmBudgetRepository() // FirebaseAIBudgetRepository
+    lazy var aiBudgetRepository: AIBudgetRepositoryProtocol = FirebaseAIBudgetRepository() // AlgorithmBudgetRepository
     lazy var generateBudgetUseCase = GenerateBudgetUseCase(repository: aiBudgetRepository)
     lazy var generateTripInsightUseCase = GenerateTripInsightUseCase(repository: aiBudgetRepository)
 
     lazy var notificationService: NotificationServiceProtocol = LocalNotificationService()
+    lazy var fetchTripDetailUseCase = FetchTripDetailUseCase(repository: tripRepository)
 
     func makeHomeViewModel() -> HomeViewModel {
         HomeViewModel(
             fetchTripsUseCase: fetchTripsUseCase,
-            generateBudgetUseCase: generateBudgetUseCase
+            generateBudgetUseCase: generateBudgetUseCase,
+            tripRepository: tripRepository
         )
     }
 
@@ -34,7 +36,8 @@ final class AppDIContainer {
             addExpenseUseCase: addExpenseUseCase,
             updateBudgetUseCase: updateBudgetUseCase,
             notificationService: notificationService,
-            generateTripInsightUseCase: generateTripInsightUseCase
+            generateTripInsightUseCase: generateTripInsightUseCase,
+            fetchTripDetailUseCase: fetchTripDetailUseCase
         )
     }
 }
